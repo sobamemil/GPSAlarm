@@ -1,8 +1,12 @@
 package com.example.gpsalarm
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.*
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +19,8 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
+import org.jetbrains.anko.startActivity
+import org.jetbrains.anko.toast
 import java.io.IOException
 import java.util.*
 import kotlin.concurrent.thread
@@ -23,14 +29,19 @@ class MainActivity : AppCompatActivity() {
 
     var mLocationManager : LocationManager? = null
     var mLocationListener : LocationListener? = null
+    var mLocationReceiver : BroadcastReceiver? = null
 
     lateinit var tv1 : TextView
     lateinit var tv2 : TextView
     lateinit var btn1 : Button
     lateinit var et1 : EditText
+    lateinit var btn2 : Button
+    lateinit var btn3 : Button
 
     var latitude : Double = 0.0
     var longitude : Double = 0.0
+
+    var destination : String = "-1"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +53,14 @@ class MainActivity : AppCompatActivity() {
         tv2 = findViewById(R.id.tv2)
         btn1 = findViewById(R.id.btn1)
         et1 = findViewById(R.id.et1)
+        btn2 = findViewById(R.id.btn2)
+        btn3 = findViewById(R.id.btn3)
+
+        // 브로드캐스트 리시버가 메시지를 받을 수 있도록 설정
+        // 액션이 com.example.gpsalarm.BroadcastReceiver 브로드캐스트 메시지를 받도록 설정
+
+
+
 
         LocationHelper().startListeningUserLocation(this , object : LocationHelper.MyLocationListener {
             override fun onLocationChanged(location: Location) {
@@ -50,6 +69,12 @@ class MainActivity : AppCompatActivity() {
                 tv1.text = "" + location.latitude + "," + location.longitude
                 latitude = location.latitude
                 longitude = location.longitude
+
+                curAddress = Geocoder(applicationContext, Locale.KOREAN).getFromLocation(latitude, longitude, 1).toString()
+                toast("curAddress : " + curAddress)
+                if(curAddress == destination) {
+                    toast("목적지에 도착했습니다.")
+                }
 //                tv2.text = curAddress
 
 //                thread(start = true) {
@@ -80,49 +105,111 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        var receiver = BroadcastReceiver()
+        var filter = IntentFilter("com.example.gpsalarm.BroadcastReceiver").apply {
+            addAction(LocationManager.KEY_PROXIMITY_ENTERING)
+        }
+        registerReceiver(receiver, filter)
+
+        var intent = Intent("com.example.gpsalarm.BroadcastReceiver")
+        var proximityIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
+
+        val mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+        mLocationManager.addProximityAlert(36.585, 129.341, 1000f, -1, proximityIntent)
+
+
+//        val br : BroadcastReceiver = BroadcastReceiver()
+//        val filter1 = IntentFilter().apply{
+//            addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED)
+//            addAction(LocationManager.KEY_PROXIMITY_ENTERING)
+//            //addAction(Intent.ACTION_SCREEN_OFF)
+//        }
+//        registerReceiver(br, filter1)
+
+
+
         btn1.setOnClickListener {
 
-//            tv2.text = getLocationFromAddress(et1.text.toString())
+            tv2.text = getLocationFromAddress(et1.text.toString())
 
 
-            thread(start = true) {
-                var mResultList: List<Address>? = null
-                var mGeoCoder =  Geocoder(applicationContext, Locale.KOREAN)
+//            thread(start = true) {
+//                var mResultList: List<Address>? = null
+//                var mGeoCoder =  Geocoder(applicationContext, Locale.KOREAN)
+//
+//                try{
+//                    mResultList = mGeoCoder.getFromLocation(
+//                        latitude, longitude, 1
+//                    )
+//                }catch(e: IOException){
+//                    runOnUiThread {
+//                        Toast.makeText(applicationContext, "실패", Toast.LENGTH_SHORT).show()
+//                    }
+//
+//                    e.printStackTrace()
+//                }
+//                if(mResultList != null){
+//                    Log.d("CheckCurrentLocation", mResultList[0].getAddressLine(0))
+//                    curAddress = mResultList[0].getAddressLine(0)
+//                    runOnUiThread {
+//                        tv2.text = curAddress
+//                    }
+//                }
+//            }
+        }
 
-                try{
-                    mResultList = mGeoCoder.getFromLocation(
-                        latitude, longitude, 1
-                    )
-                }catch(e: IOException){
-                    runOnUiThread {
-                        Toast.makeText(applicationContext, "실패", Toast.LENGTH_SHORT).show()
-                    }
+        btn2.setOnClickListener {
+            startActivity<MapsActivity>()
+        }
 
-                    e.printStackTrace()
-                }
-                if(mResultList != null){
-                    Log.d("CheckCurrentLocation", mResultList[0].getAddressLine(0))
-                    curAddress = mResultList[0].getAddressLine(0)
-                    runOnUiThread {
-                        tv2.text = curAddress
-                    }
-                }
+        btn3.setOnClickListener {
+            if(tv2.text != "현재위치" || tv2.text != "") {
+                destination = tv2.text.toString()
             }
         }
     }
 
-//    private fun getLocationFromAddress(address: String): CharSequence? {
-//        var mGeoCorder = Geocoder(applicationContext, Locale.KOREAN)
-//        try {
-//            var mResultList: List<Address>? = mGeoCorder.getFromLocationName(address, 1)
-//            latitude = mResultList!!.get(0).latitude
-//            longitude = mResultList!!.get(0).longitude
-//        } catch(e: IOException) {
-//            e.printStackTrace()
-//        }
-//
+    private fun getLocationFromAddress(address: String): CharSequence? {
+
+        var mGeoCoder = Geocoder(applicationContext, Locale.KOREAN)
+
+        var tmpAddr : String = ""
+
+        try {
+            var mResultList: List<Address>? = mGeoCoder.getFromLocationName(address, 1)
+            latitude = mResultList!!.get(0).latitude
+            longitude = mResultList!!.get(0).longitude
+            if(mResultList != null) {
+                Log.d("CheckCurrentLocation", mResultList[0].getAddressLine(0))
+                tmpAddr = mResultList[0].getAddressLine(0)
+            }
+        } catch(e: IOException) {
+            e.printStackTrace()
+        }
+
+
+
 //        return ("" + latitude + "," + longitude)
-//    }
+        return tmpAddr
+    }
 
     class LocationHelper {
 
