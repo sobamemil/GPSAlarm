@@ -22,6 +22,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
+    private lateinit var mMarker : Marker
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: MyLocationCallBack
@@ -42,7 +43,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap = googleMap
 
         val seoul = LatLng(37.715133, 126.734086)
-        mMap.addMarker(MarkerOptions().position(seoul).title("Marker in Seoul"))
+        mMarker = mMap.addMarker(MarkerOptions().position(seoul).title("Marker in Seoul"))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(seoul, 15F))
     }
 
@@ -92,8 +93,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val location = locationResult?.lastLocation
 
             location?.run {
+                mMarker.remove()
+
                 val latLng = LatLng(latitude,longitude)
-                mMap.addMarker(MarkerOptions().position(latLng).title("현재위치"))
+                var mOptions : MarkerOptions = MarkerOptions()
+                mOptions.title("현재위치")
+                mOptions.position(latLng)
+
+                mMarker = mMap.addMarker(mOptions)
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,17f))
             }
         }
