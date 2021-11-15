@@ -65,16 +65,16 @@ class MainActivity : AppCompatActivity() {
         LocationHelper().startListeningUserLocation(this , object : LocationHelper.MyLocationListener {
             override fun onLocationChanged(location: Location) {
                 // Here you got user location :)
-                Log.d("Location","" + location.latitude + "," + location.longitude)
+                Log.d("LogTest","" + location.latitude + "," + location.longitude)
                 tv1.text = "" + location.latitude + "," + location.longitude
                 latitude = location.latitude
                 longitude = location.longitude
 
                 curAddress = Geocoder(applicationContext, Locale.KOREAN).getFromLocation(latitude, longitude, 1).toString()
-                toast("curAddress : " + curAddress)
-                if(curAddress == destination) {
-                    toast("목적지에 도착했습니다.")
-                }
+//                toast("curAddress : " + curAddress)
+//                if(curAddress == destination) {
+//                    toast("목적지에 도착했습니다.")
+//                }
 //                tv2.text = curAddress
 
 //                thread(start = true) {
@@ -133,8 +133,8 @@ class MainActivity : AppCompatActivity() {
             // for ActivityCompat#requestPermissions for more details.
             return
         }
-        mLocationManager.addProximityAlert(36.585, 129.341, 1000f, -1, proximityIntent)
-
+        mLocationManager.addProximityAlert(37.36391434, 127.96019013, 100f, -1, proximityIntent)
+/**/
 
 //        val br : BroadcastReceiver = BroadcastReceiver()
 //        val filter1 = IntentFilter().apply{
