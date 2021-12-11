@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.*
+import android.media.RingtoneManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -24,12 +25,13 @@ import org.jetbrains.anko.toast
 import java.io.IOException
 import java.util.*
 import kotlin.concurrent.thread
+import kotlin.math.*
 
 class MainActivity : AppCompatActivity() {
 
     var mLocationManager : LocationManager? = null
     var mLocationListener : LocationListener? = null
-    var mLocationReceiver : BroadcastReceiver? = null
+    var mLocationReceiver : BroadcastReceiverClass? = null
 
     lateinit var tv1 : TextView
     lateinit var tv2 : TextView
@@ -71,6 +73,8 @@ class MainActivity : AppCompatActivity() {
                 longitude = location.longitude
 
                 curAddress = Geocoder(applicationContext, Locale.KOREAN).getFromLocation(latitude, longitude, 1).toString()
+
+//                Log.d("LogTest", curAddress)
 //                toast("curAddress : " + curAddress)
 //                if(curAddress == destination) {
 //                    toast("목적지에 도착했습니다.")
@@ -105,16 +109,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        var receiver = BroadcastReceiver()
-        var filter = IntentFilter("com.example.gpsalarm.BroadcastReceiver").apply {
-            addAction(LocationManager.KEY_PROXIMITY_ENTERING)
-        }
-        registerReceiver(receiver, filter)
-
-        var intent = Intent("com.example.gpsalarm.BroadcastReceiver")
-        var proximityIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
-
-        val mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
 
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -133,7 +127,18 @@ class MainActivity : AppCompatActivity() {
             // for ActivityCompat#requestPermissions for more details.
             return
         }
-        mLocationManager.addProximityAlert(37.36391434, 127.96019013, 100f, -1, proximityIntent)
+
+//        var receiver = BroadcastReceiverClass()
+//        var filter = IntentFilter("com.example.gpsalarm.BroadcastReceiverClass").apply {
+//            addAction(LocationManager.KEY_PROXIMITY_ENTERING)
+//        }
+//        this.registerReceiver(receiver, filter)
+//
+//        var intent = Intent("com.example.gpsalarm.BroadcastReceiverClass")
+//        var proximityIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
+//
+//        val mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+//        mLocationManager.addProximityAlert(37.363, 127.960, 10000f, -1, proximityIntent)
 /**/
 
 //        val br : BroadcastReceiver = BroadcastReceiver()
@@ -181,8 +186,32 @@ class MainActivity : AppCompatActivity() {
         }
 
         btn3.setOnClickListener {
+
             if(tv2.text != "현재위치" || tv2.text != "") {
                 destination = tv2.text.toString()
+
+                val latlong = getLatLongFromLocation(destination)
+                val latitude = (floor(latlong[0]*1000) / 1000)
+                val longitude = (floor(latlong[1]*1000) / 1000)
+
+//                val latitude = latlong[0]
+//                val longitude = latlong[1]
+
+                Log.d("LogTest", "latitude : " + latitude + ", longitude : " + longitude )
+
+
+                var receiver = BroadcastReceiverClass()
+                var filter = IntentFilter("com.example.gpsalarm.BroadcastReceiverClass").apply {
+                    addAction(LocationManager.KEY_PROXIMITY_ENTERING)
+                }
+                registerReceiver(receiver, filter)
+
+                var intent = Intent("com.example.gpsalarm.BroadcastReceiverClass")
+                var proximityIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
+
+                val mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+                mLocationManager.addProximityAlert(latitude, longitude, 1000f, -1, proximityIntent)
+
             }
         }
     }
@@ -195,10 +224,10 @@ class MainActivity : AppCompatActivity() {
 
         try {
             var mResultList: List<Address>? = mGeoCoder.getFromLocationName(address, 1)
-            latitude = mResultList!!.get(0).latitude
-            longitude = mResultList!!.get(0).longitude
             if(mResultList != null) {
-                Log.d("CheckCurrentLocation", mResultList[0].getAddressLine(0))
+                latitude = mResultList!!.get(0).latitude
+                longitude = mResultList!!.get(0).longitude
+                Log.d("LogTest", mResultList[0].getAddressLine(0))
                 tmpAddr = mResultList[0].getAddressLine(0)
             }
         } catch(e: IOException) {
@@ -211,10 +240,24 @@ class MainActivity : AppCompatActivity() {
         return tmpAddr
     }
 
+    private fun getLatLongFromLocation(location: String) : Array<Double> {
+        var mGeoCoder = Geocoder(applicationContext, Locale.KOREAN)
+        var mResultList: List<Address>? = mGeoCoder.getFromLocationName(location, 1)
+
+        if(mResultList != null) {
+            latitude = mResultList!!.get(0).latitude
+            longitude = mResultList!!.get(0).longitude
+        }
+
+        var array = arrayOf(latitude, longitude)
+
+        return array
+    }
+
     class LocationHelper {
 
         val LOCATION_REFRESH_TIME = 3000 // 3 seconds. The Minimum Time to get location update
-        val LOCATION_REFRESH_DISTANCE = 30 // 30 meters. The Minimum Distance to be changed to get location update
+        val LOCATION_REFRESH_DISTANCE = 1 // 1 meters. The Minimum Distance to be changed to get location update
         val MY_PERMISSIONS_REQUEST_LOCATION = 100
 
         var myLocationListener: MyLocationListener? = null

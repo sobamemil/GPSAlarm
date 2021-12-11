@@ -15,9 +15,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -26,6 +24,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: MyLocationCallBack
+
+    lateinit var videoMark : GroundOverlayOptions
+
+    var lat = 0.0
+    var long = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +45,36 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        val seoul = LatLng(37.715133, 126.734086)
-        mMarker = mMap.addMarker(MarkerOptions().position(seoul).title("Marker in Seoul"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(seoul, 15F))
+        mMap.uiSettings.isZoomControlsEnabled = true // zoom 가능하도록 설정
+//        mMap.setOnMapClickListener { point ->
+//            mMarker.remove()
+//
+//            var mOptions : MarkerOptions = MarkerOptions()
+//            mOptions.title("선택한 위치")
+//            mOptions.position(point)
+//
+//            mMarker = mMap.addMarker(mOptions)
+//            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point,17f))
+//
+//        }
+
+
+        mMap.setOnMapClickListener { point ->
+
+            mMap.clear()
+
+            videoMark = GroundOverlayOptions().image(BitmapDescriptorFactory.fromResource(R.drawable.presence_video_busy)).position(point, 50f, 50f)
+            mMap.addGroundOverlay(videoMark)
+
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point,17f))
+
+            lat = point.latitude
+            long = point.longitude
+
+        }
+//        val seoul = LatLng(37.715133, 126.734086)
+//        mMarker = mMap.addMarker(MarkerOptions().position(seoul).title("Marker in Seoul"))
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(seoul, 15F))
     }
 
     private fun initLocation(){
@@ -92,17 +122,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             val location = locationResult?.lastLocation
 
-            location?.run {
-                mMarker.remove()
-
-                val latLng = LatLng(latitude,longitude)
-                var mOptions : MarkerOptions = MarkerOptions()
-                mOptions.title("현재위치")
-                mOptions.position(latLng)
-
-                mMarker = mMap.addMarker(mOptions)
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,17f))
-            }
+//            location?.run {
+//                mMarker.remove()
+//
+//                val latLng = LatLng(latitude,longitude)
+//                var mOptions : MarkerOptions = MarkerOptions()
+//                mOptions.title("현재위치")
+//                mOptions.position(latLng)
+//
+//                mMarker = mMap.addMarker(mOptions)
+//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,17f))
+//            }
         }
     }
 }
