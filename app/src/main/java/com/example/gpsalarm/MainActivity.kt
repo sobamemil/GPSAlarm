@@ -17,6 +17,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -24,6 +25,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
+import org.jetbrains.anko.inputMethodManager
 import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.toast
 import java.io.IOException
@@ -81,6 +83,8 @@ class MainActivity : AppCompatActivity() {
     var desLat = 0.0
     var desLong = 0.0
 
+    var imm : InputMethodManager? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -102,6 +106,8 @@ class MainActivity : AppCompatActivity() {
             addAction(LocationManager.KEY_PROXIMITY_ENTERING)
         }
         registerReceiver(receiver, filter)
+
+        getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager?
 
 
 
@@ -130,6 +136,8 @@ class MainActivity : AppCompatActivity() {
 
 
         btn1.setOnClickListener {
+
+
             if(et1.text.isEmpty()) {
                 Toast.makeText(this, "목적지를 입력하지 않았습니다.", Toast.LENGTH_SHORT).show()
             } else {
@@ -189,6 +197,12 @@ class MainActivity : AppCompatActivity() {
             btn4.visibility = View.INVISIBLE
 
 
+        }
+    }
+
+    fun hideKeyboard(v: View) {
+        if(v != null) {
+            imm?.hideSoftInputFromWindow(v.windowToken, 0)
         }
     }
 
