@@ -34,7 +34,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="위치 가져오기"
+        android:text="장소 검색하기"
         android:id="@+id/btn1"
         app:layout_constraintBottom_toTopOf="@id/tv2"
         app:layout_constraintLeft_toRightOf="@id/et1"

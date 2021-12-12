@@ -130,8 +130,17 @@ class MainActivity : AppCompatActivity() {
 
 
         btn1.setOnClickListener {
+            if(et1.text.isEmpty()) {
+                Toast.makeText(this, "목적지를 입력하지 않았습니다.", Toast.LENGTH_SHORT).show()
+            } else {
+                val tmp = getLocationFromAddress(et1.text.toString())
+                if( tmp != null) {
+                    tv2.text = tmp.toString()
+                } else {
+                    Toast.makeText(this, "검색된 장소가 없습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
 
-            tv2.text = getLocationFromAddress(et1.text.toString())
 
 
         }
@@ -154,9 +163,15 @@ class MainActivity : AppCompatActivity() {
 //            val uriRingtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
 //            val ringtone = RingtoneManager.getRingtone( this, uriRingtone)
             var ringtone = BroadcastReceiverClass.ringtone
-            ringtone.stop()
+            if(ringtone.isPlaying) {
+                ringtone.stop()
+                Toast.makeText(this, "알람이 꺼졌습니다.", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "알람이 울리고 있지 않습니다.", Toast.LENGTH_SHORT).show()
+            }
 
-            Toast.makeText(this, "알람이 꺼졌습니다.", Toast.LENGTH_SHORT).show()
+
+
 
 //            var intent = Intent("com.example.gpsalarm.BroadcastReceiverClass")
 //            var proximityIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
@@ -284,21 +299,15 @@ class MainActivity : AppCompatActivity() {
 
         var mGeoCoder = Geocoder(applicationContext, Locale.KOREAN)
 
-        var tmpAddr : String = ""
+        var tmpAddr: CharSequence? = null
 
-        try {
-            var mResultList: List<Address>? = mGeoCoder.getFromLocationName(address, 1)
-            if(mResultList != null) {
-                var latitude = mResultList!!.get(0).latitude
-                var longitude = mResultList!!.get(0).longitude
-                Log.d("LogTest", mResultList[0].getAddressLine(0))
-                tmpAddr = mResultList[0].getAddressLine(0)
-            }
-        } catch(e: IOException) {
-            e.printStackTrace()
+        var mResultList: List<Address>? = mGeoCoder.getFromLocationName(address, 1)
+        if(!mResultList.isNullOrEmpty()) {
+            var latitude = mResultList!!.get(0).latitude
+            var longitude = mResultList!!.get(0).longitude
+            Log.d("LogTest", mResultList[0].getAddressLine(0))
+            tmpAddr = mResultList[0].getAddressLine(0)
         }
-
-
 
 //        return ("" + latitude + "," + longitude)
         return tmpAddr
