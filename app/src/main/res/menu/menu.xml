@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="반경 변경하기" />
+
+    <group
+        android:id="@+id/single_group"
+        android:checkableBehavior="single" >
+        <item
+            android:id="@+id/item1"
+            android:title="반경 500m"
+            android:checked="true"/>
+
+        <item
+            android:id="@+id/item2"
+            android:title="반경 1km" />
+
+        <item
+            android:id="@+id/item3"
+            android:title="반경 10km" />
+    </group>
+
+
+</menu>

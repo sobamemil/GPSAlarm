@@ -1,9 +1,14 @@
 package com.example.gpsalarm
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.widget.Button
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import com.example.gpsalarm.R
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -25,7 +30,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: MyLocationCallBack
 
-    lateinit var videoMark : GroundOverlayOptions
+    private lateinit var btn_set : Button
+
+    private lateinit var videoMark : GroundOverlayOptions
 
     var lat = 0.0
     var long = 0.0
@@ -37,8 +44,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
         initLocation()
+
+        btn_set = findViewById(R.id.btn_set)
+
+        btn_set.setOnClickListener {
+            if(lat != 0.0 && long != 0.0) {
+                var intent = Intent()
+                intent.putExtra("latitude", lat)
+                intent.putExtra("longitude", long)
+                setResult(Activity.RESULT_OK, intent)
+                finish()
+            } else {
+                Toast.makeText(this@MapsActivity, "위치가 선택되지 않았습니다!!!", Toast.LENGTH_SHORT).show()
+            }
+        }
+
     }
 
 
@@ -59,7 +80,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 //        }
 
 
-        mMap.setOnMapClickListener { point ->
+        mMap.setOnMapLongClickListener { point ->
 
             mMap.clear()
 
@@ -72,6 +93,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             long = point.longitude
 
         }
+
 //        val seoul = LatLng(37.715133, 126.734086)
 //        mMarker = mMap.addMarker(MarkerOptions().position(seoul).title("Marker in Seoul"))
 //        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(seoul, 15F))
@@ -122,17 +144,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             val location = locationResult?.lastLocation
 
-//            location?.run {
+            location?.run {
 //                mMarker.remove()
-//
-//                val latLng = LatLng(latitude,longitude)
-//                var mOptions : MarkerOptions = MarkerOptions()
-//                mOptions.title("현재위치")
-//                mOptions.position(latLng)
-//
-//                mMarker = mMap.addMarker(mOptions)
-//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,17f))
-//            }
+                mMap.clear()
+
+                val latLng = LatLng(latitude,longitude)
+                var mOptions : MarkerOptions = MarkerOptions()
+                mOptions.title("현재위치")
+                mOptions.position(latLng)
+
+                mMarker = mMap.addMarker(mOptions)
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,17f))
+
+                fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+            }
         }
     }
 }
