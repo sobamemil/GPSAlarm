@@ -83,9 +83,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.setOnMapLongClickListener { point ->
 
             mMap.clear()
+//            videoMark = GroundOverlayOptions().image(BitmapDescriptorFactory.fromResource(R.drawable.map_marker)).position(point, 50f, 50f)
+//            mMap.addGroundOverlay(videoMark)
 
-            videoMark = GroundOverlayOptions().image(BitmapDescriptorFactory.fromResource(R.drawable.presence_video_busy)).position(point, 50f, 50f)
-            mMap.addGroundOverlay(videoMark)
+            var mOptions = MarkerOptions()
+            mOptions.title("목적지")
+            mOptions.position(point)
+            mMap.addMarker(mOptions)
 
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point,17f))
 
