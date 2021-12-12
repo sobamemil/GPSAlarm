@@ -44,7 +44,6 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "반경이 ${value/1000}km로 변경되었습니다.", Toast.LENGTH_SHORT).show()
         }
 
-//    lateinit var tv1 : TextView
     lateinit var tv2 : TextView
     lateinit var btn1 : Button
     lateinit var et1 : EditText
