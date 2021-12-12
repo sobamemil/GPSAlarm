@@ -31,6 +31,28 @@ import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.*
 
+object DistanceManager {
+
+    private const val R = 6372.8 * 1000
+
+//    /**
+//     * 두 좌표의 거리를 계산한다.
+//     *
+//     * @param lat1 위도1
+//     * @param lon1 경도1
+//     * @param lat2 위도2
+//     * @param lon2 경도2
+//     * @return 두 좌표의 거리(m)
+//     */
+    fun getDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Int {
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = sin(dLat / 2).pow(2.0) + sin(dLon / 2).pow(2.0) * cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2))
+        val c = 2 * asin(sqrt(a))
+        return (R * c).toInt()
+    }
+}
+
 class MainActivity : AppCompatActivity() {
 
     var mLocationManager : LocationManager? = null
@@ -45,6 +67,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     lateinit var tv2 : TextView
+    lateinit var tv3 : TextView
     lateinit var btn1 : Button
     lateinit var et1 : EditText
     lateinit var btn2 : Button
@@ -55,6 +78,8 @@ class MainActivity : AppCompatActivity() {
 //    var longitude : Double = 0.0
 
     var destination : String = "-1"
+    var desLat = 0.0
+    var desLong = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,13 +87,13 @@ class MainActivity : AppCompatActivity() {
 
         var curAddress = "위치"
 
-//        tv1 = findViewById(R.id.tv1)
         tv2 = findViewById(R.id.tv2)
         btn1 = findViewById(R.id.btn1)
         et1 = findViewById(R.id.et1)
         btn2 = findViewById(R.id.btn2)
         btn3 = findViewById(R.id.btn3)
         btn4 = findViewById(R.id.btn4)
+        tv3 = findViewById(R.id.tv3)
 
         // 브로드캐스트 리시버가 메시지를 받을 수 있도록 설정
         // 액션이 com.example.gpsalarm.BroadcastReceiver 브로드캐스트 메시지를 받도록 설정
@@ -85,68 +110,23 @@ class MainActivity : AppCompatActivity() {
                 // Here you got user location :)
 //                Log.d("LogTest","" + location.latitude + "," + location.longitude)
 //                tv1.text = "" + location.latitude + "," + location.longitude
-//                var latitude = location.latitude
-//                var longitude = location.longitude
+                var curLatitude = location.latitude
+                var curLongitude = location.longitude
+
+                if(desLat != 0.0 && desLong != 0.0) {
+                    val distance = DistanceManager.getDistance(curLatitude, curLongitude, desLat, desLong)
+                    Log.d("LogTest", distance.toString())
+                    if(distance < radius) {
+                        tv3.text = "목적지에 주변에 도착하였습니다."
+                    } else {
+                        tv3.text = "목적지까지 " + distance + "m 남았습니다."
+                    }
+
+                }
 //
 //                curAddress = Geocoder(applicationContext, Locale.KOREAN).getFromLocation(latitude, longitude, 1).toString()
-
-//                Log.d("LogTest", curAddress)
-//                toast("curAddress : " + curAddress)
-//                if(curAddress == destination) {
-//                    toast("목적지에 도착했습니다.")
-//                }
-//                tv2.text = curAddress
-
-//                thread(start = true) {
-//                    var mResultList: List<Address>? = null
-//                    var mGeoCoder =  Geocoder(applicationContext, Locale.KOREAN)
-//
-//                    try{
-//                        mResultList = mGeoCoder.getFromLocation(
-//                            latitude, longitude, 1
-//                        )
-//                    }catch(e: IOException){
-//                        runOnUiThread {
-//                            Toast.makeText(applicationContext, "실패", Toast.LENGTH_SHORT).show()
-//                        }
-//
-//                        e.printStackTrace()
-//                    }
-//                    if(mResultList != null){
-//                        Log.d("CheckCurrentLocation", mResultList[0].getAddressLine(0))
-//                        curAddress = mResultList[0].getAddressLine(0)
-//                        runOnUiThread {
-//                            tv2.text = curAddress
-//                        }
-//
-//                    }
-//                }
-
             }
         })
-
-
-//        var receiver = BroadcastReceiverClass()
-//        var filter = IntentFilter("com.example.gpsalarm.BroadcastReceiverClass").apply {
-//            addAction(LocationManager.KEY_PROXIMITY_ENTERING)
-//        }
-//        this.registerReceiver(receiver, filter)
-//
-//        var intent = Intent("com.example.gpsalarm.BroadcastReceiverClass")
-//        var proximityIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
-//
-//        val mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-//        mLocationManager.addProximityAlert(37.363, 127.960, 10000f, -1, proximityIntent)
-/**/
-
-//        val br : BroadcastReceiver = BroadcastReceiver()
-//        val filter1 = IntentFilter().apply{
-//            addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED)
-//            addAction(LocationManager.KEY_PROXIMITY_ENTERING)
-//            //addAction(Intent.ACTION_SCREEN_OFF)
-//        }
-//        registerReceiver(br, filter1)
-
 
 
         btn1.setOnClickListener {
@@ -154,29 +134,6 @@ class MainActivity : AppCompatActivity() {
             tv2.text = getLocationFromAddress(et1.text.toString())
 
 
-//            thread(start = true) {
-//                var mResultList: List<Address>? = null
-//                var mGeoCoder =  Geocoder(applicationContext, Locale.KOREAN)
-//
-//                try{
-//                    mResultList = mGeoCoder.getFromLocation(
-//                        latitude, longitude, 1
-//                    )
-//                }catch(e: IOException){
-//                    runOnUiThread {
-//                        Toast.makeText(applicationContext, "실패", Toast.LENGTH_SHORT).show()
-//                    }
-//
-//                    e.printStackTrace()
-//                }
-//                if(mResultList != null){
-//                    Log.d("CheckCurrentLocation", mResultList[0].getAddressLine(0))
-//                    curAddress = mResultList[0].getAddressLine(0)
-//                    runOnUiThread {
-//                        tv2.text = curAddress
-//                    }
-//                }
-//            }
         }
 
         btn2.setOnClickListener {
@@ -186,7 +143,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         btn3.setOnClickListener {
-            registerDestination()
+            if (desLat == 0.0 && desLong == 0.0) {
+                Toast.makeText(this, "목적지가 등록되지 않았습니다.", Toast.LENGTH_SHORT).show()
+            } else {
+                registerDestination()
+            }
         }
 
         btn4.setOnClickListener {
@@ -203,6 +164,11 @@ class MainActivity : AppCompatActivity() {
 //            mLocationManager.removeProximityAlert(proximityIntent)
             lManager.removeProximityAlert(pIntent)
             pIntent.cancel()
+
+            desLong = 0.0
+            desLat = 0.0
+            tv2.text = "목적지를 등록해주세요"
+            tv3.text = ""
 
             btn3.visibility = View.VISIBLE
             btn4.visibility = View.INVISIBLE
@@ -235,7 +201,7 @@ class MainActivity : AppCompatActivity() {
         var longitude = 0.0
 
         if(lat == 0.0 && long == 0.0) {
-            if(tv2.text != "목적지를 지정해주세요" || tv2.text != "") {
+            if(tv2.text != "목적지를 등록해주세요" || tv2.text != "") {
                 destination = tv2.text.toString()
 
                 val latlong = getLatLongFromLocation(destination)
@@ -269,6 +235,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         Log.d("LogTest", "latitude : " + latitude + ", longitude : " + longitude )
+        desLat = latitude
+        desLong = longitude
 
         var intent = Intent("com.example.gpsalarm.BroadcastReceiverClass")
         var proximityIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
